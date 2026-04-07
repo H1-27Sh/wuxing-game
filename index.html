@@ -1,510 +1,362 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>五行局 · Elemental Relations</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #0a0a1a; -webkit-tap-highlight-color: transparent; }
-    button { -webkit-appearance: none; font-family: inherit; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>五行局：关系 | Elemental Relations</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0a1a">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#0a0a1a;font-family:'Noto Sans SC','PingFang SC','Helvetica Neue',sans-serif;overflow-x:hidden;color:#fff}
+button{font-family:inherit;cursor:pointer;-webkit-appearance:none}
+::-webkit-scrollbar{display:none}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.fi{animation:fadeIn .4s ease-out}.su{animation:slideUp .5s ease-out}
+</style>
 </head>
 <body>
-  <div id="root"></div>
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script type="text/babel">
-    const { useState, useEffect, useCallback, useRef } = React;
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script>
+const{useState,useEffect,useRef,createElement:h}=React;
+const ELS=["wood","fire","earth","metal","water"];
+const CN={wood:"\u6728",fire:"\u706b",earth:"\u571f",metal:"\u91d1",water:"\u6c34"};
+const EMJ={wood:"\ud83c\udf33",fire:"\ud83d\udd25",earth:"\u26f0\ufe0f",metal:"\u2694\ufe0f",water:"\ud83c\udf0a"};
+const COL={wood:"#1B5E20",fire:"#B71C1C",earth:"#795548",metal:"#37474F",water:"#0D47A1"};
+const LT={wood:"#C8E6C9",fire:"#FFCDD2",earth:"#D7CCC8",metal:"#CFD8DC",water:"#BBDEFB"};
+const SH={wood:"fire",fire:"earth",earth:"metal",metal:"water",water:"wood"};
+const KE={wood:"earth",fire:"metal",earth:"water",metal:"wood",water:"fire"};
+const SHB={};Object.entries(SH).forEach(([k,v])=>{SHB[v]=k});
+const KEB={};Object.entries(KE).forEach(([k,v])=>{KEB[v]=k});
+const SEASONS=[
+  {name:"\u6625 Spring",el:"wood",boost:"wood",nerf:"metal"},
+  {name:"\u590f Summer",el:"fire",boost:"fire",nerf:"water"},
+  {name:"\u957f\u590f",el:"earth",boost:"earth",nerf:"wood"},
+  {name:"\u79cb Autumn",el:"metal",boost:"metal",nerf:"fire"},
+  {name:"\u51ac Winter",el:"water",boost:"water",nerf:"earth"},
+];
+const CHARS=[
+  {id:1,tg:"\u7532\u6728",en:"Towering Tree",el:"wood",yy:"yang",str:"strong"},
+  {id:2,tg:"\u7532\u6728",en:"Young Sapling",el:"wood",yy:"yang",str:"weak"},
+  {id:3,tg:"\u4e59\u6728",en:"Wild Vine",el:"wood",yy:"yin",str:"strong"},
+  {id:4,tg:"\u4e59\u6728",en:"Orchid",el:"wood",yy:"yin",str:"weak"},
+  {id:5,tg:"\u4e19\u706b",en:"Blazing Sun",el:"fire",yy:"yang",str:"strong"},
+  {id:6,tg:"\u4e19\u706b",en:"Winter Sun",el:"fire",yy:"yang",str:"weak"},
+  {id:7,tg:"\u4e01\u706b",en:"Forge Flame",el:"fire",yy:"yin",str:"strong"},
+  {id:8,tg:"\u4e01\u706b",en:"Starlight",el:"fire",yy:"yin",str:"weak"},
+  {id:9,tg:"\u620a\u571f",en:"Great Mountain",el:"earth",yy:"yang",str:"strong"},
+  {id:10,tg:"\u620a\u571f",en:"Crumbling Wall",el:"earth",yy:"yang",str:"weak"},
+  {id:11,tg:"\u5df1\u571f",en:"Fertile Plain",el:"earth",yy:"yin",str:"strong"},
+  {id:12,tg:"\u5df1\u571f",en:"Scattered Dust",el:"earth",yy:"yin",str:"weak"},
+  {id:13,tg:"\u5e9a\u91d1",en:"War Blade",el:"metal",yy:"yang",str:"strong"},
+  {id:14,tg:"\u5e9a\u91d1",en:"Rusty Iron",el:"metal",yy:"yang",str:"weak"},
+  {id:15,tg:"\u8f9b\u91d1",en:"Diamond",el:"metal",yy:"yin",str:"strong"},
+  {id:16,tg:"\u8f9b\u91d1",en:"Gold Leaf",el:"metal",yy:"yin",str:"weak"},
+  {id:17,tg:"\u58ec\u6c34",en:"Raging River",el:"water",yy:"yang",str:"strong"},
+  {id:18,tg:"\u58ec\u6c34",en:"Quiet Stream",el:"water",yy:"yang",str:"weak"},
+  {id:19,tg:"\u7678\u6c34",en:"Dark Rain",el:"water",yy:"yin",str:"strong"},
+  {id:20,tg:"\u7678\u6c34",en:"Morning Dew",el:"water",yy:"yin",str:"weak"},
+];
+const OBJS=[
+  {id:"dom",cn:"\u79f0\u9738",desc:"\u672c\u5143\u7d20\u226510",ck:(p)=>p.el[p.ch.el]>=10},
+  {id:"bal",cn:"\u5e73\u8861",desc:"\u5168\u90e83-6",ck:(p)=>ELS.every(e=>p.el[e]>=3&&p.el[e]<=6)},
+  {id:"sur",cn:"\u5e78\u5b58\u8005",desc:"\u603b\u503c\u6700\u9ad8\u4e14\u65e00",ck:(p,a)=>{
+    const t=Object.values(p.el).reduce((x,y)=>x+y,0);
+    const ok=ELS.every(e=>p.el[e]>0);
+    const mx=Math.max(...a.map(q=>Object.values(q.el).reduce((x,y)=>x+y,0)));
+    return ok&&t>=mx;
+  }},
+  {id:"des",cn:"\u6bc1\u706d\u8005",desc:"\u4e24\u4eba\u6709\u5143\u7d20\u22640",ck:(p,a)=>
+    a.filter(q=>q.id!==p.id).filter(q=>ELS.some(e=>q.el[e]<=0)).length>=2},
+];
+function clamp(v){return Math.max(0,Math.min(12,v))}
+function initEl(el,str){
+  const v={};ELS.forEach(e=>{
+    if(e===el)v[e]=str==="strong"?5:3;
+    else if(SHB[el]===e)v[e]=3;
+    else if(SH[el]===e)v[e]=2;
+    else if(KEB[el]===e)v[e]=1;
+    else if(KE[el]===e)v[e]=2;
+    else v[e]=2;
+  });return v;
+}
+function mkDeck(){
+  const c=[];
+  Object.entries(SH).forEach(([f,t])=>{for(let i=0;i<2;i++)c.push({type:"sheng",from:f,to:t,cn:CN[f]+"\u751f"+CN[t],eff:CN[t]+"+2"})});
+  Object.entries(KE).forEach(([f,t])=>{for(let i=0;i<2;i++)c.push({type:"ke",from:f,to:t,cn:CN[f]+"\u514b"+CN[t],eff:CN[t]+"-2"})});
+  return shuf(c);
+}
+function shuf(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=0|Math.random()*(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
+function pick(a){return a[0|Math.random()*a.length]}
+const TC={sheng:{bg:"#1B5E20",tx:"#C8E6C9",lb:"\u751f",gl:"#4CAF50"},ke:{bg:"#B71C1C",tx:"#FFCDD2",lb:"\u514b",gl:"#F44336"}};
 
-    const ELEMENTS = ["wood", "fire", "earth", "metal", "water"];
-    const EL_CN = { wood: "木", fire: "火", earth: "土", metal: "金", water: "水" };
-    const EL_EMOJI = { wood: "🌳", fire: "🔥", earth: "⛰️", metal: "⚔️", water: "🌊" };
-    const EL_COLOR = {
-      wood: "#1B5E20", fire: "#B71C1C", earth: "#795548", metal: "#37474F", water: "#0D47A1"
-    };
-    const EL_BG = {
-      wood: "#C8E6C9", fire: "#FFCDD2", earth: "#D7CCC8", metal: "#CFD8DC", water: "#BBDEFB"
-    };
+function App(){
+  const[scr,setScr]=useState("title");
+  const[pls,setPls]=useState([]);
+  const[dk,setDk]=useState([]);
+  const[disc,setDisc]=useState([]);
+  const[rd,setRd]=useState(0);
+  const[sn,setSn]=useState(0);
+  const[ph,setPh]=useState("draw");
+  const[selC,setSelC]=useState(null);
+  const[selT,setSelT]=useState(null);
+  const[lg,setLg]=useState([]);
+  const[rev,setRev]=useState(null);
+  const[win,setWin]=useState(null);
+  const[tmr,setTmr]=useState(25);
+  const tR=useRef(null);const logR=useRef(null);
+  const me=pls[0];
 
-    const SHENG = { wood: "fire", fire: "earth", earth: "metal", metal: "water", water: "wood" };
-    const KE = { wood: "earth", fire: "metal", earth: "water", metal: "wood", water: "fire" };
-    const KE_BY = {};
-    Object.entries(KE).forEach(([k, v]) => { KE_BY[v] = k; });
-    const SHENG_BY = {};
-    Object.entries(SHENG).forEach(([k, v]) => { SHENG_BY[v] = k; });
+  useEffect(()=>{if(logR.current)logR.current.scrollTop=logR.current.scrollHeight},[lg]);
 
-    const SEASONS = [
-      { name: "春 Spring", el: "wood", boost: "wood", nerf: "metal" },
-      { name: "夏 Summer", el: "fire", boost: "fire", nerf: "water" },
-      { name: "长夏 Late Summer", el: "earth", boost: "earth", nerf: "wood" },
-      { name: "秋 Autumn", el: "metal", boost: "metal", nerf: "fire" },
-      { name: "冬 Winter", el: "water", boost: "water", nerf: "earth" },
-    ];
+  function refillDeck(d,dc){
+    if(d.length>0)return{deck:d,discard:dc};
+    if(dc.length===0)return{deck:[],discard:[]};
+    return{deck:shuf(dc),discard:[]};
+  }
 
-    const CHARACTERS = [
-      { id: 1,  tg: "甲木", en: "Towering Tree",  el: "wood",  yy: "yang", str: "strong" },
-      { id: 2,  tg: "甲木", en: "Young Sapling",  el: "wood",  yy: "yang", str: "weak"   },
-      { id: 3,  tg: "乙木", en: "Wild Vine",       el: "wood",  yy: "yin",  str: "strong" },
-      { id: 4,  tg: "乙木", en: "Orchid",          el: "wood",  yy: "yin",  str: "weak"   },
-      { id: 5,  tg: "丙火", en: "Blazing Sun",     el: "fire",  yy: "yang", str: "strong" },
-      { id: 6,  tg: "丙火", en: "Winter Sun",      el: "fire",  yy: "yang", str: "weak"   },
-      { id: 7,  tg: "丁火", en: "Forge Flame",     el: "fire",  yy: "yin",  str: "strong" },
-      { id: 8,  tg: "丁火", en: "Starlight",       el: "fire",  yy: "yin",  str: "weak"   },
-      { id: 9,  tg: "戊土", en: "Great Mountain",  el: "earth", yy: "yang", str: "strong" },
-      { id: 10, tg: "戊土", en: "Crumbling Wall",  el: "earth", yy: "yang", str: "weak"   },
-      { id: 11, tg: "己土", en: "Fertile Plain",   el: "earth", yy: "yin",  str: "strong" },
-      { id: 12, tg: "己土", en: "Scattered Dust",  el: "earth", yy: "yin",  str: "weak"   },
-      { id: 13, tg: "庚金", en: "War Blade",       el: "metal", yy: "yang", str: "strong" },
-      { id: 14, tg: "庚金", en: "Rusty Iron",      el: "metal", yy: "yang", str: "weak"   },
-      { id: 15, tg: "辛金", en: "Diamond",         el: "metal", yy: "yin",  str: "strong" },
-      { id: 16, tg: "辛金", en: "Gold Leaf",       el: "metal", yy: "yin",  str: "weak"   },
-      { id: 17, tg: "壬水", en: "Raging River",    el: "water", yy: "yang", str: "strong" },
-      { id: 18, tg: "壬水", en: "Quiet Stream",    el: "water", yy: "yang", str: "weak"   },
-      { id: 19, tg: "癸水", en: "Dark Rain",       el: "water", yy: "yin",  str: "strong" },
-      { id: 20, tg: "癸水", en: "Morning Dew",     el: "water", yy: "yin",  str: "weak"   },
-    ];
+  function start(cid){
+    const my=CHARS.find(c=>c.id===cid);
+    const others=shuf(CHARS.filter(c=>c.el!==my.el));
+    const seen=new Set();const picks=[];
+    for(const c of others){if(!seen.has(c.el)&&picks.length<2){seen.add(c.el);picks.push(c)}}
+    if(picks.length<2)picks.push(others.find(c=>!picks.includes(c)));
+    const objs=shuf([...OBJS]);
+    let nd=mkDeck();
+    const np=[my,...picks].map((ch,i)=>({
+      id:i,name:i===0?"\u4f60":["\u5c0f\u660e","\u5c0f\u7ea2"][i-1],
+      ch,el:initEl(ch.el,ch.str),
+      hand:[nd.pop(),nd.pop(),nd.pop()],
+      obj:objs[i%objs.length],isAI:i!==0,
+    }));
+    setPls(np);setDk(nd);setDisc([]);setRd(1);setSn(0);setPh("draw");
+    setLg(["\ud83c\udfae \u6e38\u620f\u5f00\u59cb! \u7b2c1\u56de\u5408",
+      "\u{1F464} \u4f60: "+my.tg+" "+my.en,
+      "\u{1F464} \u5c0f\u660e: "+picks[0].tg+" "+picks[0].en,
+      "\u{1F464} \u5c0f\u7ea2: "+picks[1].tg+" "+picks[1].en]);
+    setSelC(null);setSelT(null);setRev(null);setWin(null);setScr("game");
+  }
 
-    const OBJECTIVES = [
-      { id: "dominance", cn: "称霸", en: "Dominance", desc: "本元素≥10", check: (p) => p.elements[p.char.el] >= 10 },
-      { id: "balance", cn: "平衡", en: "Balance", desc: "全部3-6", check: (p) => ELEMENTS.every(e => p.elements[e] >= 3 && p.elements[e] <= 6) },
-      { id: "survivor", cn: "幸存者", en: "Survivor", desc: "总值最高且无0", check: (p, all) => {
-        const myTotal = Object.values(p.elements).reduce((a, b) => a + b, 0);
-        const noZero = ELEMENTS.every(e => p.elements[e] > 0);
-        const maxTotal = Math.max(...all.map(q => Object.values(q.elements).reduce((a, b) => a + b, 0)));
-        return noZero && myTotal >= maxTotal;
-      }},
-      { id: "destroyer", cn: "毁灭者", en: "Destroyer", desc: "两人崩溃", check: (p, all) => {
-        const others = all.filter(q => q.id !== p.id);
-        return others.filter(q => ELEMENTS.some(e => q.elements[e] <= 0)).length >= 2;
-      }},
-    ];
+  function drawPh(){
+    let d=[...dk],dc=[...disc];
+    const np=pls.map(p=>{
+      const r=refillDeck(d,dc);d=r.deck;dc=r.discard;
+      if(d.length>0){const card=d.pop();return{...p,hand:[...p.hand,card],el:{...p.el}}}
+      return{...p,hand:[...p.hand],el:{...p.el}};
+    });
+    const s=SEASONS[sn];
+    np.forEach(p=>{p.el[s.boost]=clamp(p.el[s.boost]+1);p.el[s.nerf]=clamp(p.el[s.nerf]-1)});
+    setDk(d);setDisc(dc);setPls(np);
+    setLg(v=>[...v,"\ud83d\udce5 \u6478\u724c | "+s.name+" "+CN[s.boost]+"+1 "+CN[s.nerf]+"-1"]);
+    setPh("scheme");setTmr(25);
+  }
 
-    function initElements(el, str) {
-      const vals = {};
-      ELEMENTS.forEach(e => {
-        if (e === el) vals[e] = str === "strong" ? 5 : 3;
-        else if (SHENG_BY[el] === e) vals[e] = 3;
-        else if (SHENG[el] === e) vals[e] = 2;
-        else if (KE_BY[el] === e) vals[e] = 1;
-        else if (KE[el] === e) vals[e] = 2;
-        else vals[e] = 2;
-      });
-      return vals;
+  useEffect(()=>{
+    if(ph==="scheme"&&tmr>0){tR.current=setTimeout(()=>setTmr(t=>t-1),1000);return()=>clearTimeout(tR.current)}
+    if(ph==="scheme"&&tmr<=0)setPh("commit");
+  },[ph,tmr]);
+
+  function commit(){
+    if(selC===null||selT===null)return;
+    const myCard=me.hand[selC];
+    const aiMoves=pls.filter(p=>p.isAI&&p.hand.length>0).map(p=>{
+      const c=pick(p.hand);
+      const ts=pls.filter(q=>q.id!==p.id);
+      return{pid:p.id,card:c,tid:pick(ts).id};
+    });
+    setRev([{pid:0,card:myCard,tid:selT},...aiMoves]);setPh("reveal");
+  }
+
+  function skipTurn(){
+    const np=pls.map(p=>({...p,hand:[...p.hand],el:{...p.el}}));
+    let dc=[...disc];
+    if(np[0].hand.length>0){dc.push(np[0].hand.shift())}
+    const dst=rd>5,mult=dst?2:1,nl=[];
+    np.filter(p=>p.isAI&&p.hand.length>0).forEach(p=>{
+      const card=pick(p.hand);const ci=p.hand.indexOf(card);
+      if(ci!==-1){p.hand.splice(ci,1);dc.push(card)}
+      const tg=pick(np.filter(q=>q.id!==p.id));
+      const a=2*mult;
+      if(card.type==="sheng"){tg.el[card.to]=clamp(tg.el[card.to]+a);nl.push(EMJ[card.from]+" "+p.name+" \u751f "+tg.name+" "+CN[card.to]+"+"+a)}
+      else{tg.el[card.to]=clamp(tg.el[card.to]-a);nl.push("\u2694\ufe0f "+p.name+" \u514b "+tg.name+" "+CN[card.to]+"-"+a)}
+    });
+    setDisc(dc);setPls(np);setLg(v=>[...v,"\u23e9 \u4f60\u8df3\u8fc7\u4e86",...nl]);
+    setSelC(null);setSelT(null);setRev(null);
+    checkEnd(np);
+  }
+
+  function resolve(){
+    if(!rev)return;
+    const np=pls.map(p=>({...p,el:{...p.el},hand:[...p.hand]}));
+    const nl=[],dst=rd>5,mult=dst?2:1;let dc=[...disc];
+    rev.forEach(m=>{const p=np[m.pid];const ci=p.hand.findIndex(c=>c===m.card);if(ci!==-1){const rm=p.hand.splice(ci,1);dc.push(...rm)}});
+    rev.filter(m=>m.card.type==="sheng").forEach(m=>{
+      const tg=np[m.tid],el=m.card.to,a=2*mult;
+      tg.el[el]=clamp(tg.el[el]+a);
+      nl.push(EMJ[m.card.from]+" "+np[m.pid].name+" \u751f "+tg.name+" "+CN[el]+"+"+a);
+    });
+    rev.filter(m=>m.card.type==="ke").forEach(m=>{
+      const tg=np[m.tid],el=m.card.to,a=2*mult;
+      tg.el[el]=clamp(tg.el[el]-a);
+      nl.push("\u2694\ufe0f "+np[m.pid].name+" \u514b "+tg.name+" "+CN[el]+"-"+a);
+    });
+    np.forEach(p=>{ELS.forEach(e=>{
+      if(p.el[e]>=8)nl.push("\u26a0\ufe0f "+p.name+" "+CN[e]+"\u8fc7\u65fa("+p.el[e]+")");
+      if(p.el[e]<=0)nl.push("\ud83d\udca5 "+p.name+" "+CN[e]+"\u5d29\u6e83!");
+    })});
+    setDisc(dc);setPls(np);setLg(v=>[...v,"\u2500\u2500 \u7b2c"+rd+"\u56de\u5408 \u2500\u2500",...nl]);
+    setRev(null);setSelC(null);setSelT(null);
+    checkEnd(np);
+  }
+
+  function checkEnd(np){
+    let w=null;
+    np.forEach(p=>{if(p.obj.ck(p,np)){w=p;setLg(v=>[...v,"\ud83c\udfc6 "+p.name+" \u8fbe\u6210\u300c"+p.obj.cn+"\u300d!"])}});
+    if(w){setWin(w);setPh("end");return}
+    if(rd>=8){
+      const tots=np.map(p=>({...p,total:Object.values(p.el).reduce((a,b)=>a+b,0)}));
+      tots.sort((a,b)=>b.total-a.total);setWin(tots[0]);
+      setLg(v=>[...v,"\u23f0 8\u56de\u5408\u7ed3\u675f! "+tots[0].name+"\u83b7\u80dc!"]);setPh("end");return;
     }
+    setRd(r=>r+1);setSn(s=>(s+1)%5);setPh("draw");
+  }
 
-    function buildDeck() {
-      const cards = [];
-      Object.entries(SHENG).forEach(([from, to]) => {
-        cards.push({ type: "sheng", from, to, cn: `${EL_CN[from]}生${EL_CN[to]}`, effect: `${EL_CN[to]}+2` });
-        cards.push({ type: "sheng", from, to, cn: `${EL_CN[from]}生${EL_CN[to]}`, effect: `${EL_CN[to]}+2` });
-      });
-      Object.entries(KE).forEach(([from, to]) => {
-        cards.push({ type: "ke", from, to, cn: `${EL_CN[from]}克${EL_CN[to]}`, effect: `${EL_CN[to]}-2` });
-        cards.push({ type: "ke", from, to, cn: `${EL_CN[from]}克${EL_CN[to]}`, effect: `${EL_CN[to]}-2` });
-      });
-      return shuffle(cards);
-    }
+  function bar(el,val){
+    const pct=Math.min(100,(val/10)*100);
+    return h("div",{key:el,style:{display:"flex",alignItems:"center",gap:4,marginBottom:3}},
+      h("span",{style:{fontSize:11,width:18,textAlign:"center",color:LT[el]}},CN[el]),
+      h("div",{style:{flex:1,height:16,background:"#1a1a2e",borderRadius:8,overflow:"hidden",position:"relative"}},
+        h("div",{style:{width:pct+"%",height:"100%",borderRadius:8,background:val>=8?"linear-gradient(90deg,#ff6b6b,#ee5a24)":val<=0?"#333":val<=2?"#666":COL[el],transition:"width .4s"}}),
+        h("span",{style:{position:"absolute",right:5,top:0,fontSize:10,color:val<=0?"#ff4444":"#fff",lineHeight:"16px",fontWeight:600}},val)
+      )
+    );
+  }
 
-    function shuffle(arr) {
-      const a = [...arr];
-      for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-      }
-      return a;
-    }
+  if(scr==="title"){
+    return h("div",{style:{minHeight:"100vh",background:"linear-gradient(180deg,#0a0a1a,#0d1b2a)",padding:"0 0 40px"}},
+      h("div",{style:{textAlign:"center",paddingTop:40}},
+        h("div",{className:"fi",style:{fontSize:48,fontWeight:800,letterSpacing:8}},"\u4e94\u884c\u5c40"),
+        h("div",{style:{fontSize:12,color:"#555",letterSpacing:5,marginTop:4}},"ELEMENTAL RELATIONS"),
+        h("div",{style:{width:50,height:1,background:"linear-gradient(90deg,transparent,#FFD700,transparent)",margin:"16px auto"}}),
+        h("div",{style:{fontSize:12,color:"#777",marginBottom:20}},"\u9009\u62e9\u4f60\u7684\u65e5\u4e3b (20\u4e2a\u89d2\u8272)"),
+      ),
+      h("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,padding:"0 16px",maxWidth:400,margin:"0 auto"}},
+        ...CHARS.map((ch,i)=>
+          h("button",{key:ch.id,onClick:()=>start(ch.id),className:"su",
+            style:{animationDelay:(i*.03)+"s",animationFillMode:"backwards",padding:"12px 10px",borderRadius:12,
+              background:"linear-gradient(135deg,"+COL[ch.el]+"cc,"+COL[ch.el]+"66)",
+              border:"1px solid rgba(255,255,255,.08)",color:"#fff",textAlign:"left",position:"relative",overflow:"hidden"}},
+            h("div",{style:{position:"absolute",top:-15,right:-15,fontSize:40,opacity:.06}},EMJ[ch.el]),
+            h("div",{style:{fontSize:18,fontWeight:700}},ch.tg),
+            h("div",{style:{fontSize:10,opacity:.6,marginTop:1}},ch.en),
+            h("div",{style:{display:"flex",gap:4,marginTop:3}},
+              h("span",{style:{fontSize:8,padding:"1px 5px",borderRadius:4,background:"rgba(255,255,255,.1)"}},ch.yy==="yang"?"\u2600\u9633":"\u263d\u9634"),
+              h("span",{style:{fontSize:8,padding:"1px 5px",borderRadius:4,background:ch.str==="strong"?"rgba(255,215,0,.2)":"rgba(150,150,150,.2)",color:ch.str==="strong"?"#FFD700":"#aaa"}},ch.str==="strong"?"\u8eab\u5f3a":"\u8eab\u5f31"),
+            ),
+          )
+        )
+      ),
+      h("div",{style:{textAlign:"center",marginTop:16,fontSize:11,color:"#444"}},"3\u4eba\u5c40 | \u4f60 vs 2AI | \u70b9\u51fb\u89d2\u8272\u5f00\u59cb"),
+    );
+  }
 
-    function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-
-    const TYPE_COLORS = {
-      sheng: { bg: "#1B5E20", text: "#C8E6C9", label: "生", en: "GEN" },
-      ke: { bg: "#B71C1C", text: "#FFCDD2", label: "克", en: "ATK" },
-    };
-
-    function Game() {
-      const [screen, setScreen] = useState("title");
-      const [players, setPlayers] = useState([]);
-      const [deck, setDeck] = useState([]);
-      const [round, setRound] = useState(0);
-      const [season, setSeason] = useState(0);
-      const [phase, setPhase] = useState("draw");
-      const [selectedCard, setSelectedCard] = useState(null);
-      const [selectedTarget, setSelectedTarget] = useState(null);
-      const [log, setLog] = useState([]);
-      const [revealData, setRevealData] = useState(null);
-      const [winner, setWinner] = useState(null);
-      const [schemeTimer, setSchemeTimer] = useState(30);
-      const timerRef = useRef(null);
-
-      const playerIdx = 0;
-      const me = players[playerIdx];
-
-      function startGame(charId) {
-        const myChar = CHARACTERS.find(c => c.id === charId);
-        const otherChars = shuffle(CHARACTERS.filter(c => c.id !== charId)).slice(0, 2);
-        const allChars = [myChar, ...otherChars];
-        const objectives = shuffle([...OBJECTIVES]);
-        const newDeck = buildDeck();
-        const newPlayers = allChars.map((ch, i) => ({
-          id: i, name: i === 0 ? "你" : [`小明`, `小红`][i - 1],
-          char: ch, elements: initElements(ch.el, ch.str),
-          hand: [newDeck.pop(), newDeck.pop(), newDeck.pop()],
-          objective: objectives[i], isAI: i !== 0, collapsed: {},
-        }));
-        setPlayers(newPlayers);
-        setDeck(newDeck);
-        setRound(1);
-        setSeason(0);
-        setPhase("draw");
-        setLog(["🎮 游戏开始！第1回合"]);
-        setSelectedCard(null);
-        setSelectedTarget(null);
-        setRevealData(null);
-        setWinner(null);
-        setScreen("game");
-      }
-
-      function drawPhase() {
-        const newDeck = [...deck];
-        const newPlayers = players.map(p => {
-          if (newDeck.length > 0) {
-            const card = newDeck.pop();
-            return { ...p, hand: [...p.hand, card] };
-          }
-          return p;
-        });
-        const s = SEASONS[season];
-        newPlayers.forEach(p => {
-          p.elements = { ...p.elements };
-          p.elements[s.boost] = Math.min(10, p.elements[s.boost] + 1);
-          p.elements[s.nerf] = Math.max(0, p.elements[s.nerf] - 1);
-        });
-        setDeck(newDeck);
-        setPlayers(newPlayers);
-        setLog(prev => [...prev, `📥 摸牌完成 | ${s.name} ${EL_CN[s.boost]}+1 ${EL_CN[s.nerf]}-1`]);
-        setPhase("scheme");
-        setSchemeTimer(30);
-      }
-
-      useEffect(() => {
-        if (phase === "scheme" && schemeTimer > 0) {
-          timerRef.current = setTimeout(() => setSchemeTimer(t => t - 1), 1000);
-          return () => clearTimeout(timerRef.current);
-        }
-        if (phase === "scheme" && schemeTimer <= 0) {
-          setPhase("commit");
-        }
-      }, [phase, schemeTimer]);
-
-      function commitCard() {
-        if (!selectedCard || selectedTarget === null) return;
-        const aiMoves = players.filter(p => p.isAI).map(p => {
-          const card = pickRandom(p.hand);
-          const targets = players.filter(q => q.id !== p.id);
-          const target = pickRandom(targets);
-          return { playerId: p.id, card, targetId: target.id };
-        });
-        const allMoves = [
-          { playerId: 0, card: me.hand[selectedCard], targetId: selectedTarget },
-          ...aiMoves
-        ];
-        setRevealData(allMoves);
-        setPhase("reveal");
-      }
-
-      function resolveRound() {
-        if (!revealData) return;
-        const newPlayers = players.map(p => ({
-          ...p, elements: { ...p.elements }, hand: [...p.hand]
-        }));
-        const newLog = [];
-        const destiny = round > 5;
-        const mult = destiny ? 2 : 1;
-
-        revealData.forEach(move => {
-          const p = newPlayers[move.playerId];
-          const cardIdx = p.hand.findIndex(c => c === move.card);
-          if (cardIdx !== -1) p.hand.splice(cardIdx, 1);
-        });
-
-        const shengMoves = revealData.filter(m => m.card.type === "sheng");
-        const keMoves = revealData.filter(m => m.card.type === "ke");
-
-        shengMoves.forEach(m => {
-          const target = newPlayers[m.targetId];
-          const el = m.card.to;
-          const amt = 2 * mult;
-          target.elements[el] = Math.min(12, target.elements[el] + amt);
-          newLog.push(`${EL_EMOJI[m.card.from]} ${newPlayers[m.playerId].name} 生 ${target.name} → ${EL_CN[el]}+${amt}`);
-        });
-
-        keMoves.forEach(m => {
-          const target = newPlayers[m.targetId];
-          const el = m.card.to;
-          const amt = 2 * mult;
-          target.elements[el] = Math.max(0, target.elements[el] - amt);
-          newLog.push(`⚔️ ${newPlayers[m.playerId].name} 克 ${target.name} → ${EL_CN[el]}-${amt}`);
-        });
-
-        let w = null;
-        newPlayers.forEach(p => {
-          if (p.objective.check(p, newPlayers)) {
-            w = p;
-            newLog.push(`🏆 ${p.name} 达成「${p.objective.cn}」！`);
-          }
-        });
-
-        newPlayers.forEach(p => {
-          ELEMENTS.forEach(e => {
-            if (p.elements[e] >= 8) newLog.push(`⚠️ ${p.name} ${EL_CN[e]}过旺(${p.elements[e]})`);
-            if (p.elements[e] <= 0) newLog.push(`💥 ${p.name} ${EL_CN[e]}崩溃!`);
-          });
-        });
-
-        setPlayers(newPlayers);
-        setLog(prev => [...prev, `── 第${round}回合结算 ──`, ...newLog]);
-        setRevealData(null);
-        setSelectedCard(null);
-        setSelectedTarget(null);
-
-        if (w) {
-          setWinner(w);
-          setPhase("end");
-        } else if (round >= 8) {
-          const totals = newPlayers.map(p => ({ ...p, total: Object.values(p.elements).reduce((a, b) => a + b, 0) }));
-          totals.sort((a, b) => b.total - a.total);
-          setWinner(totals[0]);
-          setLog(prev => [...prev, `⏰ 8回合结束！${totals[0].name}总值最高获胜！`]);
-          setPhase("end");
-        } else {
-          setRound(r => r + 1);
-          setSeason(s => (s + 1) % 5);
-          setPhase("draw");
-        }
-      }
-
-      const elBar = (el, val, max = 10) => {
-        const pct = Math.min(100, (val / max) * 100);
-        return (
-          <div key={el} style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 3 }}>
-            <span style={{ fontSize: 11, width: 18, textAlign: "center" }}>{EL_CN[el]}</span>
-            <div style={{ flex: 1, height: 14, background: "#1a1a2e", borderRadius: 7, overflow: "hidden", position: "relative" }}>
-              <div style={{
-                width: `${pct}%`, height: "100%", borderRadius: 7,
-                background: val >= 8 ? "#ff6b6b" : val <= 1 ? "#555" : EL_COLOR[el],
-                transition: "width 0.4s"
-              }} />
-              <span style={{ position: "absolute", right: 4, top: 0, fontSize: 10, color: "#fff", lineHeight: "14px" }}>{val}</span>
-            </div>
-          </div>
-        );
-      };
-
-      // ─── TITLE SCREEN ───
-      if (screen === "title") {
-        return (
-          <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 50%, #0d1b2a 100%)", color: "#fff", fontFamily: "'Noto Sans SC', 'Helvetica Neue', sans-serif", padding: "0", overflow: "auto" }}>
-            <div style={{ textAlign: "center", paddingTop: 60 }}>
-              <div style={{ fontSize: 48, fontWeight: 700, letterSpacing: 8, marginBottom: 4 }}>{"五行局"}</div>
-              <div style={{ fontSize: 14, color: "#888", letterSpacing: 4, marginBottom: 40 }}>ELEMENTAL RELATIONS</div>
-              <div style={{ fontSize: 13, color: "#aaa", marginBottom: 30 }}>{"选择你的日主元素"}</div>
-            </div>
-            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 10, padding: "0 16px", maxWidth: 480, margin: "0 auto" }}>
-              {CHARACTERS.map(ch => (
-                <button key={ch.id} onClick={() => startGame(ch.id)}
-                  style={{
-                    width: "calc(50% - 5px)", padding: "12px 8px", borderRadius: 12,
-                    background: `linear-gradient(135deg, ${EL_COLOR[ch.el]}cc, ${EL_COLOR[ch.el]}88)`,
-                    border: "1px solid rgba(255,255,255,0.1)", color: "#fff", cursor: "pointer",
-                    textAlign: "left", transition: "transform 0.15s",
-                  }}
-                  onMouseDown={e => e.currentTarget.style.transform = "scale(0.96)"}
-                  onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
-                  onTouchStart={e => e.currentTarget.style.transform = "scale(0.96)"}
-                  onTouchEnd={e => e.currentTarget.style.transform = "scale(1)"}
-                >
-                  <div style={{ fontSize: 18, fontWeight: 600 }}>{ch.tg}</div>
-                  <div style={{ fontSize: 11, opacity: 0.7 }}>{ch.en}</div>
-                  <div style={{ fontSize: 10, opacity: 0.5, marginTop: 2 }}>
-                    {ch.yy === "yang" ? "☀ 阳" : "☽ 阴"} | {ch.str === "strong" ? "身强" : "身弱"}
-                  </div>
-                </button>
-              ))}
-            </div>
-            <div style={{ textAlign: "center", marginTop: 20, paddingBottom: 40 }}>
-              <div style={{ fontSize: 11, color: "#555" }}>3人局 | 你 vs 2个AI对手</div>
-            </div>
-          </div>
-        );
-      }
-
-      // ─── GAME SCREEN ───
-      if (screen === "game" && me) {
-        const s = SEASONS[season];
-        const destiny = round > 5;
-
-        return (
-          <div style={{ minHeight: "100vh", background: "#0a0a1a", color: "#fff", fontFamily: "'Noto Sans SC', 'Helvetica Neue', sans-serif", paddingBottom: 120 }}>
-
-            {/* TOP BAR */}
-            <div style={{ background: "rgba(255,255,255,0.04)", padding: "8px 12px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-              <div>
-                <span style={{ fontSize: 13, fontWeight: 600 }}>{"第"}{round}{"回合"}</span>
-                {destiny && <span style={{ fontSize: 10, color: "#ff6b6b", marginLeft: 6 }}>{"天命×2"}</span>}
-              </div>
-              <div style={{ fontSize: 11, color: EL_BG[s.el], background: EL_COLOR[s.el] + "44", padding: "2px 10px", borderRadius: 10 }}>
-                {s.name}
-              </div>
-              <div style={{ fontSize: 11, color: "#888" }}>{"牌堆"}{deck.length}</div>
-            </div>
-
-            {/* PHASE BANNER */}
-            <div style={{ textAlign: "center", padding: "10px 0 6px" }}>
-              {phase === "draw" && <button onClick={drawPhase} style={{ background: "#2196F3", color: "#fff", border: "none", borderRadius: 20, padding: "10px 32px", fontSize: 15, fontWeight: 600, cursor: "pointer" }}>{"📥 摸牌"}</button>}
-              {phase === "scheme" && (
-                <div>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: "#F39C12" }}>{"🗣️ 密谋阶段"}</div>
-                  <div style={{ fontSize: 28, fontWeight: 700, color: schemeTimer <= 10 ? "#ff6b6b" : "#fff", marginTop: 4 }}>{schemeTimer}s</div>
-                  <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>{"观察对手状态，计划你的行动"}</div>
-                  <button onClick={() => { clearTimeout(timerRef.current); setPhase("commit"); }}
-                    style={{ marginTop: 8, background: "#333", color: "#fff", border: "1px solid #555", borderRadius: 16, padding: "6px 20px", fontSize: 12, cursor: "pointer" }}>
-                    {"跳过 → 出牌"}
-                  </button>
-                </div>
-              )}
-              {phase === "commit" && <div style={{ fontSize: 16, fontWeight: 600, color: "#4CAF50" }}>{"🎯 选牌 + 选目标"}</div>}
-              {phase === "reveal" && (
-                <div>
-                  <div style={{ fontSize: 16, fontWeight: 600, color: "#E91E63", marginBottom: 8 }}>{"🃏 翻牌！"}</div>
-                  {revealData && revealData.map((m, i) => (
-                    <div key={i} style={{ fontSize: 12, color: "#ccc", marginBottom: 3 }}>
-                      <span style={{ color: TYPE_COLORS[m.card.type].text }}>{players[m.playerId].name}</span>
-                      {" → "}{m.card.cn}{" → "}{players[m.targetId].name}
-                    </div>
-                  ))}
-                  <button onClick={resolveRound} style={{ marginTop: 10, background: "#E91E63", color: "#fff", border: "none", borderRadius: 20, padding: "10px 32px", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>{"⚔️ 结算"}</button>
-                </div>
-              )}
-              {phase === "end" && winner && (
-                <div style={{ padding: 20 }}>
-                  <div style={{ fontSize: 40 }}>{"🏆"}</div>
-                  <div style={{ fontSize: 22, fontWeight: 700, color: "#FFD700", marginTop: 8 }}>
-                    {winner.name === "你" ? "你赢了！" : `${winner.name}获胜！`}
-                  </div>
-                  <div style={{ fontSize: 13, color: "#aaa", marginTop: 4 }}>{"目标："}{winner.objective.cn} - {winner.objective.desc}</div>
-                  <button onClick={() => setScreen("title")} style={{ marginTop: 16, background: "#333", color: "#fff", border: "1px solid #555", borderRadius: 20, padding: "10px 28px", fontSize: 13, cursor: "pointer" }}>{"再来一局"}</button>
-                </div>
-              )}
-            </div>
-
-            {/* OPPONENTS */}
-            <div style={{ display: "flex", gap: 8, padding: "6px 12px", overflowX: "auto" }}>
-              {players.filter(p => p.isAI).map(p => (
-                <div key={p.id} style={{ flex: "0 0 calc(50% - 4px)", background: "rgba(255,255,255,0.04)", borderRadius: 12, padding: "8px 10px", border: `1px solid ${EL_COLOR[p.char.el]}33` }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: EL_BG[p.char.el] }}>{p.name}</span>
-                    <span style={{ fontSize: 10, color: "#888" }}>{p.char.tg}</span>
-                  </div>
-                  <div style={{ fontSize: 10, color: "#666", marginBottom: 4 }}>{p.char.en} | {"手牌"}{p.hand.length}</div>
-                  {ELEMENTS.map(e => elBar(e, p.elements[e]))}
-                </div>
-              ))}
-            </div>
-
-            {/* MY STATUS */}
-            <div style={{ margin: "8px 12px", background: `linear-gradient(135deg, ${EL_COLOR[me.char.el]}22, rgba(255,255,255,0.03))`, borderRadius: 14, padding: "10px 12px", border: `1px solid ${EL_COLOR[me.char.el]}44` }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                <div>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: EL_BG[me.char.el] }}>{me.char.tg}</span>
-                  <span style={{ fontSize: 11, color: "#888", marginLeft: 6 }}>{me.char.en}</span>
-                </div>
-                <div style={{ fontSize: 10, padding: "2px 8px", borderRadius: 8, background: "rgba(255,215,0,0.15)", color: "#FFD700" }}>
-                  {"目标："}{me.objective.cn}
-                </div>
-              </div>
-              <div style={{ fontSize: 10, color: "#888", marginBottom: 6 }}>{me.objective.desc}</div>
-              {ELEMENTS.map(e => elBar(e, me.elements[e]))}
-            </div>
-
-            {/* MY HAND */}
-            {phase === "commit" && (
-              <div style={{ padding: "6px 12px" }}>
-                <div style={{ fontSize: 12, color: "#888", marginBottom: 6 }}>{"你的手牌（点击选择）"}</div>
-                <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4 }}>
-                  {me.hand.map((card, i) => {
-                    const tc = TYPE_COLORS[card.type];
-                    const sel = selectedCard === i;
-                    return (
-                      <button key={i} onClick={() => setSelectedCard(sel ? null : i)}
-                        style={{
-                          flex: "0 0 90px", padding: "10px 6px", borderRadius: 10,
-                          background: sel ? tc.bg : tc.bg + "66",
-                          border: sel ? "2px solid #FFD700" : `1px solid ${tc.bg}88`,
-                          color: tc.text, cursor: "pointer", textAlign: "center",
-                          transform: sel ? "translateY(-4px)" : "none", transition: "all 0.15s",
-                        }}>
-                        <div style={{ fontSize: 18, fontWeight: 700 }}>{tc.label}</div>
-                        <div style={{ fontSize: 10, marginTop: 2 }}>{card.cn}</div>
-                        <div style={{ fontSize: 9, opacity: 0.6, marginTop: 2 }}>{card.effect}</div>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {selectedCard !== null && (
-                  <div style={{ marginTop: 8 }}>
-                    <div style={{ fontSize: 12, color: "#888", marginBottom: 6 }}>{"选择目标"}</div>
-                    <div style={{ display: "flex", gap: 8 }}>
-                      {players.filter(p => p.id !== 0).map(p => {
-                        const sel = selectedTarget === p.id;
-                        return (
-                          <button key={p.id} onClick={() => setSelectedTarget(sel ? null : p.id)}
-                            style={{
-                              flex: 1, padding: "10px", borderRadius: 10, cursor: "pointer",
-                              background: sel ? EL_COLOR[p.char.el] : "rgba(255,255,255,0.05)",
-                              border: sel ? "2px solid #FFD700" : "1px solid rgba(255,255,255,0.1)",
-                              color: "#fff", textAlign: "center",
-                            }}>
-                            <div style={{ fontSize: 14, fontWeight: 600 }}>{p.name}</div>
-                            <div style={{ fontSize: 10, opacity: 0.6 }}>{p.char.tg}</div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {selectedCard !== null && selectedTarget !== null && (
-                  <button onClick={commitCard}
-                    style={{
-                      width: "100%", marginTop: 12, padding: "14px", borderRadius: 14,
-                      background: "linear-gradient(135deg, #E91E63, #9C27B0)", border: "none",
-                      color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer",
-                      letterSpacing: 2,
-                    }}>
-                    {"🃏 出牌！"}
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* LOG */}
-            <div style={{ margin: "8px 12px", background: "rgba(255,255,255,0.02)", borderRadius: 12, padding: "8px 10px", maxHeight: 150, overflowY: "auto" }}>
-              <div style={{ fontSize: 11, color: "#555", marginBottom: 4 }}>{"战报"}</div>
-              {log.slice(-8).map((l, i) => (
-                <div key={i} style={{ fontSize: 11, color: l.includes("🏆") ? "#FFD700" : l.includes("⚠") ? "#ff6b6b" : l.includes("💥") ? "#ff4444" : "#999", marginBottom: 2 }}>{l}</div>
-              ))}
-            </div>
-          </div>
-        );
-      }
-      return null;
-    }
-
-    const root = ReactDOM.createRoot(document.getElementById("root"));
-    root.render(<Game />);
-  </script>
+  if(scr==="game"&&me){
+    const s=SEASONS[sn],dst=rd>5,hasCards=me.hand.length>0;
+    return h("div",{style:{minHeight:"100vh",background:"#0a0a1a",paddingBottom:20}},
+      h("div",{style:{background:"rgba(255,255,255,.03)",padding:"8px 12px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:"1px solid rgba(255,255,255,.05)"}},
+        h("div",null,h("span",{style:{fontSize:14,fontWeight:700}},"\u7b2c"+rd+"\u56de\u5408"),dst?h("span",{style:{fontSize:10,color:"#ff6b6b",marginLeft:6,animation:"pulse 1s infinite"}}," \u5929\u547d\u00d72"):null),
+        h("div",{style:{fontSize:11,color:LT[s.el],background:COL[s.el]+"44",padding:"2px 10px",borderRadius:10}},s.name),
+        h("div",{style:{fontSize:10,color:"#666"}},"\u724c"+dk.length+"/\u5f03"+disc.length),
+      ),
+      h("div",{style:{textAlign:"center",padding:"10px 14px 6px"}},
+        ph==="draw"?h("button",{onClick:drawPh,className:"fi",style:{background:"linear-gradient(135deg,#2196F3,#1565C0)",color:"#fff",border:"none",borderRadius:22,padding:"12px 36px",fontSize:15,fontWeight:700}},"\ud83d\udce5 \u6478\u724c"):null,
+        ph==="scheme"?h("div",{className:"fi"},
+          h("div",{style:{fontSize:14,fontWeight:600,color:"#F39C12"}},"\ud83d\udde3\ufe0f \u5bc6\u8c0b\u9636\u6bb5"),
+          h("div",{style:{fontSize:32,fontWeight:800,color:tmr<=8?"#ff6b6b":"#fff",marginTop:4}},tmr+"s"),
+          h("div",{style:{fontSize:10,color:"#666",marginTop:2}},"\u89c2\u5bdf\u5bf9\u624b\uff0c\u8ba1\u5212\u884c\u52a8"),
+          h("button",{onClick:()=>{clearTimeout(tR.current);setPh("commit")},style:{marginTop:8,background:"none",color:"#888",border:"1px solid #444",borderRadius:16,padding:"6px 18px",fontSize:11}},"\u8df3\u8fc7 \u2192 \u51fa\u724c"),
+        ):null,
+        ph==="commit"?h("div",{className:"fi"},
+          h("div",{style:{fontSize:14,fontWeight:600,color:hasCards?"#4CAF50":"#ff6b6b"}},hasCards?"\ud83c\udfaf \u9009\u724c & \u9009\u76ee\u6807":"\u624b\u724c\u5df2\u7528\u5b8c"),
+          !hasCards?h("button",{onClick:skipTurn,style:{marginTop:8,background:"#333",color:"#fff",border:"1px solid #555",borderRadius:16,padding:"10px 28px",fontSize:13,fontWeight:600}},"\u8df3\u8fc7\u672c\u56de\u5408"):null,
+        ):null,
+        ph==="reveal"?h("div",{className:"fi"},
+          h("div",{style:{fontSize:16,fontWeight:700,color:"#E91E63",marginBottom:8}},"\ud83c\udc0f \u7ffb\u724c!"),
+          rev&&rev.map((m,i)=>h("div",{key:i,className:"su",style:{animationDelay:(i*.12)+"s",animationFillMode:"backwards",fontSize:12,color:"#ccc",marginBottom:3,padding:"5px 10px",background:"rgba(255,255,255,.03)",borderRadius:8,borderLeft:"3px solid "+(TC[m.card.type]?TC[m.card.type].gl:"#888")}},
+            h("span",{style:{fontWeight:600}},pls[m.pid].name)," \u2192 ",
+            h("span",{style:{color:TC[m.card.type]?TC[m.card.type].tx:"#fff"}},m.card.cn),
+            " \u2192 ",h("span",{style:{fontWeight:600}},pls[m.tid].name),
+          )),
+          h("button",{onClick:resolve,style:{marginTop:12,background:"linear-gradient(135deg,#E91E63,#9C27B0)",color:"#fff",border:"none",borderRadius:22,padding:"12px 36px",fontSize:14,fontWeight:700}},"\u2694\ufe0f \u7ed3\u7b97"),
+        ):null,
+        ph==="end"&&win?h("div",{className:"fi",style:{padding:16}},
+          h("div",{style:{fontSize:44}},"\ud83c\udfc6"),
+          h("div",{style:{fontSize:22,fontWeight:800,color:"#FFD700",marginTop:8}},win.name==="\u4f60"?"\u4f60\u8d62\u4e86!":win.name+"\u83b7\u80dc!"),
+          h("div",{style:{fontSize:12,color:"#aaa",marginTop:4}},"\u76ee\u6807: "+win.obj.cn+" - "+win.obj.desc),
+          h("div",{style:{display:"flex",gap:8,justifyContent:"center",marginTop:16}},
+            h("button",{onClick:()=>setScr("title"),style:{background:"none",color:"#888",border:"1px solid #444",borderRadius:18,padding:"8px 20px",fontSize:12}},"\u8fd4\u56de"),
+            h("button",{onClick:()=>start(me.ch.id),style:{background:"linear-gradient(135deg,#FFD700,#F39C12)",color:"#000",border:"none",borderRadius:18,padding:"8px 20px",fontSize:12,fontWeight:700}},"\u518d\u6765\u4e00\u5c40"),
+          ),
+        ):null,
+      ),
+      ph!=="end"?h("div",{style:{display:"flex",gap:6,padding:"4px 12px"}},...pls.filter(p=>p.isAI).map(p=>
+        h("div",{key:p.id,style:{flex:"0 0 calc(50% - 3px)",background:"rgba(255,255,255,.03)",borderRadius:12,padding:"8px 10px",border:"1px solid "+COL[p.ch.el]+"22"}},
+          h("div",{style:{display:"flex",justifyContent:"space-between",marginBottom:4}},
+            h("span",{style:{fontSize:13,fontWeight:700,color:LT[p.ch.el]}},p.name),h("span",{style:{fontSize:9,color:"#666"}},p.ch.tg)),
+          h("div",{style:{fontSize:9,color:"#555",marginBottom:4}},p.ch.en+" | \u624b\u724c"+p.hand.length),
+          ...ELS.map(e=>bar(e,p.el[e])),
+        )
+      )):null,
+      ph!=="end"?h("div",{style:{margin:"6px 12px",background:"linear-gradient(135deg,"+COL[me.ch.el]+"15,rgba(255,255,255,.02))",borderRadius:14,padding:"10px 12px",border:"1px solid "+COL[me.ch.el]+"33"}},
+        h("div",{style:{display:"flex",justifyContent:"space-between",marginBottom:6}},
+          h("div",null,h("span",{style:{fontSize:16,fontWeight:800,color:LT[me.ch.el]}},me.ch.tg),h("span",{style:{fontSize:10,color:"#777",marginLeft:6}},me.ch.en)),
+          h("div",{style:{fontSize:9,padding:"2px 8px",borderRadius:8,background:"rgba(255,215,0,.1)",color:"#FFD700"}},"\u76ee\u6807:"+me.obj.cn),
+        ),
+        h("div",{style:{fontSize:9,color:"#666",marginBottom:6}},me.obj.desc+" | \u624b\u724c"+me.hand.length+"\u5f20"),
+        ...ELS.map(e=>bar(e,me.el[e])),
+      ):null,
+      ph==="commit"&&hasCards?h("div",{style:{padding:"6px 12px"},className:"su"},
+        h("div",{style:{fontSize:11,color:"#777",marginBottom:6}},"\u4f60\u7684\u624b\u724c"),
+        h("div",{style:{display:"flex",gap:6,overflowX:"auto",paddingBottom:4}},...me.hand.map((card,i)=>{
+          const tc=TC[card.type],sel=selC===i;
+          return h("button",{key:i,onClick:()=>{setSelC(sel?null:i);if(sel)setSelT(null)},style:{
+            flex:"0 0 88px",padding:"10px 6px",borderRadius:10,background:sel?tc.bg:tc.bg+"44",
+            border:sel?"2px solid #FFD700":"1px solid "+tc.bg+"55",color:tc.tx,textAlign:"center",
+            transform:sel?"translateY(-4px) scale(1.03)":"none",transition:"all .15s",
+          }},h("div",{style:{fontSize:22,fontWeight:800}},tc.lb),h("div",{style:{fontSize:10,marginTop:3}},card.cn),h("div",{style:{fontSize:8,opacity:.5,marginTop:2}},card.eff));
+        })),
+        h("div",{style:{marginTop:4}},h("button",{onClick:skipTurn,style:{background:"none",color:"#666",border:"1px solid #333",borderRadius:12,padding:"5px 14px",fontSize:10}},"\u8df3\u8fc7\u672c\u56de\u5408")),
+        selC!==null?h("div",{style:{marginTop:8},className:"fi"},
+          h("div",{style:{fontSize:11,color:"#777",marginBottom:6}},"\u9009\u62e9\u76ee\u6807"),
+          h("div",{style:{display:"flex",gap:6}},...pls.filter(p=>p.id!==0).map(p=>{
+            const sel=selT===p.id;
+            return h("button",{key:p.id,onClick:()=>setSelT(sel?null:p.id),style:{
+              flex:1,padding:"10px",borderRadius:10,background:sel?COL[p.ch.el]:"rgba(255,255,255,.04)",
+              border:sel?"2px solid #FFD700":"1px solid rgba(255,255,255,.08)",color:"#fff",textAlign:"center",
+            }},h("div",{style:{fontSize:14,fontWeight:700}},p.name),h("div",{style:{fontSize:10,opacity:.5}},p.ch.tg));
+          })),
+        ):null,
+        selC!==null&&selT!==null?h("button",{onClick:commit,className:"fi",style:{
+          width:"100%",marginTop:10,padding:"14px",borderRadius:14,
+          background:"linear-gradient(135deg,#E91E63,#9C27B0)",border:"none",
+          color:"#fff",fontSize:16,fontWeight:800,letterSpacing:2,
+        }},"\ud83c\udc0f \u51fa\u724c!"):null,
+      ):null,
+      ph!=="end"?h("div",{ref:logR,style:{margin:"6px 12px",background:"rgba(255,255,255,.02)",borderRadius:12,padding:"8px 10px",maxHeight:130,overflowY:"auto"}},
+        h("div",{style:{fontSize:10,color:"#444",marginBottom:3}},"\u6218\u62a5"),
+        ...lg.slice(-12).map((l,i)=>h("div",{key:i,style:{fontSize:10,marginBottom:1,
+          color:l.includes("\ud83c\udfc6")?"#FFD700":l.includes("\u26a0")?"#ff6b6b":l.includes("\ud83d\udca5")?"#ff4444":l.startsWith("\u2500")?"#555":l.startsWith("\ud83c\udfae")?"#4CAF50":"#888"
+        }},l)),
+      ):null,
+    );
+  }
+  return null;
+}
+ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+</script>
 </body>
 </html>
