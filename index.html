@@ -44,26 +44,26 @@
     ];
 
     const CHARACTERS = [
-      { id: 1, tg: "甲木", en: "Towering Tree", el: "wood", yy: "yang", str: "strong" },
-      { id: 2, tg: "甲木", en: "Young Sapling", el: "wood", yy: "yang", str: "weak" },
-      { id: 3, tg: "乙木", en: "Wild Vine", el: "wood", yy: "yin", str: "strong" },
-      { id: 4, tg: "乙木", en: "Orchid", el: "wood", yy: "yin", str: "weak" },
-      { id: 5, tg: "丙火", en: "Blazing Sun", el: "fire", yy: "yang", str: "strong" },
-      { id: 6, tg: "丙火", en: "Winter Sun", el: "fire", yy: "yang", str: "weak" },
-      { id: 7, tg: "丁火", en: "Forge Flame", el: "fire", yy: "yin", str: "strong" },
-      { id: 8, tg: "丁火", en: "Starlight", el: "fire", yy: "yin", str: "weak" },
-      { id: 9, tg: "戊土", en: "Great Mountain", el: "earth", yy: "yang", str: "strong" },
-      { id: 10, tg: "戊土", en: "Crumbling Wall", el: "earth", yy: "yang", str: "weak" },
-      { id: 11, tg: "己土", en: "Fertile Plain", el: "earth", yy: "yin", str: "strong" },
-      { id: 12, tg: "己土", en: "Scattered Dust", el: "earth", yy: "yin", str: "weak" },
-      { id: 13, tg: "庚金", en: "War Blade", el: "metal", yy: "yang", str: "strong" },
-      { id: 14, tg: "庚金", en: "Rusty Iron", el: "metal", yy: "yang", str: "weak" },
-      { id: 15, tg: "辛金", en: "Diamond", el: "metal", yy: "yin", str: "strong" },
-      { id: 16, tg: "辛金", en: "Gold Leaf", el: "metal", yy: "yin", str: "weak" },
-      { id: 17, tg: "壬水", en: "Raging River", el: "water", yy: "yang", str: "strong" },
-      { id: 18, tg: "壬水", en: "Quiet Stream", el: "water", yy: "yang", str: "weak" },
-      { id: 19, tg: "癸水", en: "Dark Rain", el: "water", yy: "yin", str: "strong" },
-      { id: 20, tg: "癸水", en: "Morning Dew", el: "water", yy: "yin", str: "weak" },
+      { id: 1,  tg: "甲木", en: "Towering Tree",  el: "wood",  yy: "yang", str: "strong" },
+      { id: 2,  tg: "甲木", en: "Young Sapling",  el: "wood",  yy: "yang", str: "weak"   },
+      { id: 3,  tg: "乙木", en: "Wild Vine",       el: "wood",  yy: "yin",  str: "strong" },
+      { id: 4,  tg: "乙木", en: "Orchid",          el: "wood",  yy: "yin",  str: "weak"   },
+      { id: 5,  tg: "丙火", en: "Blazing Sun",     el: "fire",  yy: "yang", str: "strong" },
+      { id: 6,  tg: "丙火", en: "Winter Sun",      el: "fire",  yy: "yang", str: "weak"   },
+      { id: 7,  tg: "丁火", en: "Forge Flame",     el: "fire",  yy: "yin",  str: "strong" },
+      { id: 8,  tg: "丁火", en: "Starlight",       el: "fire",  yy: "yin",  str: "weak"   },
+      { id: 9,  tg: "戊土", en: "Great Mountain",  el: "earth", yy: "yang", str: "strong" },
+      { id: 10, tg: "戊土", en: "Crumbling Wall",  el: "earth", yy: "yang", str: "weak"   },
+      { id: 11, tg: "己土", en: "Fertile Plain",   el: "earth", yy: "yin",  str: "strong" },
+      { id: 12, tg: "己土", en: "Scattered Dust",  el: "earth", yy: "yin",  str: "weak"   },
+      { id: 13, tg: "庚金", en: "War Blade",       el: "metal", yy: "yang", str: "strong" },
+      { id: 14, tg: "庚金", en: "Rusty Iron",      el: "metal", yy: "yang", str: "weak"   },
+      { id: 15, tg: "辛金", en: "Diamond",         el: "metal", yy: "yin",  str: "strong" },
+      { id: 16, tg: "辛金", en: "Gold Leaf",       el: "metal", yy: "yin",  str: "weak"   },
+      { id: 17, tg: "壬水", en: "Raging River",    el: "water", yy: "yang", str: "strong" },
+      { id: 18, tg: "壬水", en: "Quiet Stream",    el: "water", yy: "yang", str: "weak"   },
+      { id: 19, tg: "癸水", en: "Dark Rain",       el: "water", yy: "yin",  str: "strong" },
+      { id: 20, tg: "癸水", en: "Morning Dew",     el: "water", yy: "yin",  str: "weak"   },
     ];
 
     const OBJECTIVES = [
@@ -311,8 +311,8 @@
               <div style={{ fontSize: 14, color: "#888", letterSpacing: 4, marginBottom: 40 }}>ELEMENTAL RELATIONS</div>
               <div style={{ fontSize: 13, color: "#aaa", marginBottom: 30 }}>{"选择你的日主元素"}</div>
             </div>
-            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 10, padding: "0 16px", maxWidth: 400, margin: "0 auto" }}>
-              {CHARACTERS.slice(0, 10).map(ch => (
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 10, padding: "0 16px", maxWidth: 480, margin: "0 auto" }}>
+              {CHARACTERS.map(ch => (
                 <button key={ch.id} onClick={() => startGame(ch.id)}
                   style={{
                     width: "calc(50% - 5px)", padding: "12px 8px", borderRadius: 12,
@@ -322,6 +322,8 @@
                   }}
                   onMouseDown={e => e.currentTarget.style.transform = "scale(0.96)"}
                   onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
+                  onTouchStart={e => e.currentTarget.style.transform = "scale(0.96)"}
+                  onTouchEnd={e => e.currentTarget.style.transform = "scale(1)"}
                 >
                   <div style={{ fontSize: 18, fontWeight: 600 }}>{ch.tg}</div>
                   <div style={{ fontSize: 11, opacity: 0.7 }}>{ch.en}</div>
